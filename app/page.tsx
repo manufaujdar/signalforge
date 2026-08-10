@@ -64,6 +64,10 @@ export default function Home() {
   async function saveEvaluation() {
     try {
       const response = await fetch("/api/evaluations", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ platform, content: text, score: result.overall, risk: result.risk }) });
+      if (response.status === 401) {
+        setNotice("Sign in to save a private evaluation. Local scoring remains available.");
+        return;
+      }
       if (!response.ok) throw new Error();
       setNotice("Evaluation saved to your dashboard.");
     } catch { setNotice("Evaluation is ready. Persistent saving becomes available on the hosted workspace."); }
@@ -78,13 +82,13 @@ export default function Home() {
         </nav>
         <div className="sidebar-bottom">
           <div className="system-card"><span className="pulse"/><small>Evaluation engine</small><strong>6 signals online</strong><p>Explainable local scoring</p></div>
-          <button className="text-button">⚙ Workspace settings</button>
+          <button className="text-button" onClick={() => setNotice("Workspace settings are not part of this prototype.")}>⚙ Workspace settings</button>
           <div className="profile"><span>MF</span><div><strong>Content team</strong><small>Human approval on</small></div></div>
         </div>
       </aside>
 
       <section className="main-panel">
-        <header className="topbar"><div><span className="eyebrow">CONTENT INTELLIGENCE / {active.toUpperCase()}</span><h1>{active === "Evaluator" ? "Turn a good post into a stronger one." : active}</h1></div><div className="header-actions"><button className="ghost">Methodology</button><button className="primary" onClick={saveEvaluation}>Save evaluation</button></div></header>
+        <header className="topbar"><div><span className="eyebrow">CONTENT INTELLIGENCE / {active.toUpperCase()}</span><h1>{active === "Evaluator" ? "Turn a good post into a stronger one." : active}</h1></div><div className="header-actions"><button className="ghost" onClick={() => setNotice("Scores are deterministic editorial heuristics—not reach predictions.")}>Methodology</button><button className="primary" onClick={saveEvaluation}>Save evaluation</button></div></header>
 
         {active !== "Evaluator" ? <DashboardView active={active} onEvaluate={() => setActive("Evaluator")} /> : <>
           <section className="workspace-grid">
@@ -92,7 +96,7 @@ export default function Home() {
               <div className="card-head"><div><span className="step">01</span><h2>Source content</h2></div><label className="upload">↑ Upload<input type="file" accept=".txt,.md,.csv,text/plain,text/markdown,text/csv" onChange={onFile}/></label></div>
               <div className="platform-row"><span>Optimize for</span>{(["X","LinkedIn","Instagram"] as Platform[]).map(p => <button key={p} onClick={() => setPlatform(p)} className={platform === p ? "selected" : ""}>{p}</button>)}</div>
               <textarea aria-label="Content to evaluate" value={text} onChange={e => setText(e.target.value)} />
-              <div className="composer-meta"><span>{result.words} words</span><span className={result.chars > result.limit ? "danger" : ""}>{result.chars} / {result.limit} characters</span><span>Auto-saved draft</span></div>
+              <div className="composer-meta"><span>{result.words} words</span><span className={result.chars > result.limit ? "danger" : ""}>{result.chars} / {result.limit} characters</span><span>Local draft • not saved</span></div>
               <div className="context-row"><label>Goal<select defaultValue="conversation"><option value="conversation">Start conversation</option><option>Build authority</option><option>Drive clicks</option></select></label><label>Audience<input defaultValue="Tech & product leaders"/></label></div>
               <button className="evaluate" onClick={() => setNotice("Fresh evaluation complete.")}>Evaluate content <span>→</span></button>
             </article>
@@ -119,8 +123,9 @@ export default function Home() {
 
 function DashboardView({active, onEvaluate}:{active:string; onEvaluate:()=>void}) {
   return <div className="dashboard-view">
+    <p className="prototype-note">Synthetic demonstration data—no platform account or live analytics is connected.</p>
     <section className="metric-row">{[["Evaluations","24","+8 this week"],["Median score","78","↑ 6 points"],["Experiments","3","1 running"],["Approval rate","67%","Human reviewed"]].map(m => <article className="metric card" key={m[0]}><span>{m[0]}</span><strong>{m[1]}</strong><small>{m[2]}</small></article>)}</section>
-    <section className="dash-grid"><article className="card chart-card"><div className="card-head"><div><span className="step">LIVE</span><h2>Signal health</h2></div><span className="model-tag">Last 8 evaluations</span></div><div className="chart">{[58,65,61,72,69,77,74,82].map((h,i)=><i key={i} style={{height:`${h}%`}}><span>{h}</span></i>)}</div><div className="axis"><span>Jun 24</span><span>Today</span></div></article><article className="card next-card"><span className="eyebrow">NEXT BEST ACTION</span><h2>Conversation scores trail clarity by 14 points.</h2><p>Test a narrower closing question on the next three X posts. Keep topic and format stable.</p><button className="primary" onClick={onEvaluate}>Evaluate a draft</button></article></section>
+    <section className="dash-grid"><article className="card chart-card"><div className="card-head"><div><span className="step">DEMO</span><h2>Signal health</h2></div><span className="model-tag">8 synthetic evaluations</span></div><div className="chart">{[58,65,61,72,69,77,74,82].map((h,i)=><i key={i} style={{height:`${h}%`}}><span>{h}</span></i>)}</div><div className="axis"><span>Example 1</span><span>Example 8</span></div></article><article className="card next-card"><span className="eyebrow">EXAMPLE NEXT ACTION</span><h2>Conversation scores trail clarity by 14 points.</h2><p>Test a narrower closing question on the next three X posts. Keep topic and format stable.</p><button className="primary" onClick={onEvaluate}>Evaluate a draft</button></article></section>
     <section className="card activity"><div className="card-head"><div><span className="step">RECENT</span><h2>{active} workspace</h2></div></div>{["AI agent workflow post","Open-source analytics stack","Human review framework"].map((x,i)=><div className="activity-row" key={x}><span className="activity-icon">{i===0?"X":"in"}</span><div><strong>{x}</strong><small>{["Conversation experiment","Authority post","Educational carousel"][i]}</small></div><b>{[82,76,71][i]}</b><span className="status">{i===0?"Approved":"Review"}</span></div>)}</section>
   </div>;
 }

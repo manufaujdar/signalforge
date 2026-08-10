@@ -8,6 +8,9 @@ test("source contains the SignalForge application", async () => {
   assert.match(page,/SignalForge/);
   assert.match(page,/Turn a good post into a stronger one/);
   assert.match(page,/api\/evaluations/);
+  assert.match(page,/Local draft • not saved/);
+  assert.match(page,/Synthetic demonstration data/);
+  assert.doesNotMatch(page,/>LIVE</);
   assert.match(layout,/og\.png/);
   assert.doesNotMatch(page,/codex-preview/);
 });

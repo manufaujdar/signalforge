@@ -82,6 +82,11 @@ SIWC establishes identity only; it does not prove workspace membership. Use the
 Sites hosting platform's access policy controls for workspace-wide restrictions,
 or enforce explicit server-side membership or allowlist checks.
 
+Saved evaluations require the stable authenticated-user ID and are filtered by
+that ID on every read. Anonymous visitors can still use the explainable evaluator
+locally, but the API refuses anonymous persistence. Deploy this app privately or
+add an explicit membership policy before using saved records with a team.
+
 Use SIWC for account pages, user-specific dashboards, saved records, and write
 actions tied to the current ChatGPT user. Leave public content anonymous.
 
@@ -90,6 +95,8 @@ actions tied to the current ChatGPT user. Leave public content anonymous.
 - `npm run dev`: start local development
 - `npm run build`: verify the vinext build output
 - `npm test`: build the starter and verify its rendered loading skeleton
+- `npm run typecheck`: verify application, worker, D1 shim, and test types
+- `npm run quality`: lint, typecheck, audit production dependencies, build, and test
 - `npm run db:generate`: generate Drizzle migrations after schema changes
 
 ## Learn More
