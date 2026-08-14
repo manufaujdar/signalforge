@@ -1,8 +1,34 @@
-# vinext-starter
+# SignalForge
 
-A clean full-stack starter running on
-[vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and
-Drizzle support.
+SignalForge is a local-first dashboard for evaluating draft social content with
+transparent editorial heuristics. It helps a human team compare clarity,
+conversation, evidence, and risk signals before publication; it is not a
+platform-ranking oracle, autonomous marketing system, or publishing service.
+
+The repository is a research/alpha prototype. Scores are directional signals,
+not reach predictions, and every external account action remains outside the
+application and under human control.
+
+## Start here
+
+- [`docs/README.md`](docs/README.md) — documentation map and release boundary
+- [`SECURITY.md`](SECURITY.md) — security reporting and prohibited data
+- [`CONTRIBUTING.md`](CONTRIBUTING.md) — local contribution workflow
+- [`PRIVACY_AND_DATA_BOUNDARY.md`](PRIVACY_AND_DATA_BOUNDARY.md) — source-only data boundary
+- [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md) — dependency and integration notice
+
+The source is licensed under the [MIT License](LICENSE). `private: true` in
+`package.json` prevents accidental npm publication; it does not make the GitHub
+source private and does not replace the repository license.
+
+## Product boundary
+
+- Local evaluation is available without persistence or external model calls.
+- Saved evaluations require the host's authenticated user identity and are
+  filtered by stable owner ID on every read and write.
+- Synthetic dashboard examples are clearly labeled and are not account analytics.
+- OAuth, scheduling, posting, replies, likes, follows, reposts, and account
+  credentials are intentionally out of scope.
 
 ## Prerequisites
 
@@ -18,7 +44,7 @@ npm run build
 
 This starter does not use `wrangler.jsonc`.
 
-## Included Shape
+## Included application shape
 
 - edit site code under `app/`
 - `.openai/hosting.json` declares optional Sites D1 and R2 bindings
@@ -26,6 +52,10 @@ This starter does not use `wrangler.jsonc`.
 - `db/schema.ts` starts intentionally empty
 - `examples/d1/` contains an optional D1 example surface
 - `drizzle.config.ts` supports local migration generation when needed
+
+This application is built on a reusable vinext starter shape, but the
+SignalForge product copy, evaluator, data boundary, and owner-scoped routes are
+the project-specific surface.
 
 ## Workspace Auth Headers
 
@@ -98,6 +128,11 @@ actions tied to the current ChatGPT user. Leave public content anonymous.
 - `npm run typecheck`: verify application, worker, D1 shim, and test types
 - `npm run quality`: lint, typecheck, audit production dependencies, build, and test
 - `npm run db:generate`: generate Drizzle migrations after schema changes
+
+Run `npm run quality` before proposing a release. It checks lint, TypeScript,
+production dependency advisories, build, and deterministic tests. A green local
+check does not establish platform-policy compliance, privacy compliance, or
+production readiness.
 
 ## Learn More
 
