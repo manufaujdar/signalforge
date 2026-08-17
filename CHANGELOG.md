@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Added an MIT license, notice, citation, governance, third-party, privacy/data,
+  and documentation map for open-source readiness.
+- Refreshed the React, React Server DOM, Vite, Cloudflare Vite plugin, Wrangler,
+  and vinext toolchain; the production dependency audit remains clean.
 - Scoped saved evaluations to authenticated per-Site users and quarantined legacy
   anonymous records.
 - Replaced fake live/dashboard labels with explicit synthetic-demo states.
