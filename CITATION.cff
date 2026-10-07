@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+title: "SignalForge"
+message: "If you use SignalForge, cite the repository and exact commit or release."
+type: software
+authors:
+  - family-names: Faujdar
+    given-names: Manu
+repository-code: "https://github.com/manufaujdar/signalforge"
+license: MIT
+version: 0.1.0
+date-released: 2026-08-14
