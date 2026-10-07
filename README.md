@@ -138,3 +138,10 @@ production readiness.
 
 - [vinext Documentation](https://github.com/cloudflare/vinext)
 - [Drizzle D1 Guide](https://orm.drizzle.team/docs/get-started/d1-new)
+
+
+Spec Kit v1.1.0 — local development/planning workflow
+---------------------------------------------------
+Read .specify/INTEGRATION.md for the installed Codex feature, bug and idea
+commands. Existing project/company trackers and approvals remain authoritative.
+Run commands from this folder; new project chats discover .agents/skills/speckit-*.

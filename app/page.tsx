@@ -48,6 +48,7 @@ export default function Home() {
   const [active, setActive] = useState("Evaluator");
   const [notice, setNotice] = useState("");
   const [selectedVariant, setSelectedVariant] = useState(0);
+  const [saving, setSaving] = useState(false);
   const result = useMemo(() => analyse(text, platform), [text, platform]);
   const variants = useMemo(() => [enhance(text, "clear"), enhance(text, "bold"), enhance(text, "conversation")], [text]);
   const projected = variants.map(v => analyse(v, platform).overall);
@@ -57,11 +58,15 @@ export default function Home() {
     if (!file) return;
     if (file.size > 2_000_000) { setNotice("Please upload a text file smaller than 2 MB."); return; }
     if (!file.type.startsWith("text/") && !/\.(md|txt|csv)$/i.test(file.name)) { setNotice("This version accepts .txt, .md, and .csv content files."); return; }
-    setText(await file.text());
-    setNotice(`${file.name} loaded and evaluated locally.`);
+    try {
+      setText(await file.text());
+      setNotice(`${file.name} loaded and evaluated locally.`);
+    } catch { setNotice("The file could not be read. Your draft is unchanged; try another text file."); }
   }
 
   async function saveEvaluation() {
+    if (saving || !text.trim()) return;
+    setSaving(true);
     try {
       const response = await fetch("/api/evaluations", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ platform, content: text, score: result.overall, risk: result.risk }) });
       if (response.status === 401) {
@@ -70,7 +75,15 @@ export default function Home() {
       }
       if (!response.ok) throw new Error();
       setNotice("Evaluation saved to your dashboard.");
-    } catch { setNotice("Evaluation is ready. Persistent saving becomes available on the hosted workspace."); }
+    } catch { setNotice("Evaluation was not saved. Your draft is still available; check the connection and retry."); }
+    finally { setSaving(false); }
+  }
+
+  async function copyVariant() {
+    try {
+      await navigator.clipboard.writeText(variants[selectedVariant]);
+      setNotice("Enhanced version copied.");
+    } catch { setNotice("Clipboard unavailable. Select and copy the enhanced text below."); }
   }
 
   return (
@@ -78,7 +91,7 @@ export default function Home() {
       <aside className="sidebar">
         <div className="brand"><span className="brand-mark">S</span><div><strong>SignalForge</strong><small>Content intelligence</small></div></div>
         <nav aria-label="Primary navigation">
-          {["Dashboard", "Evaluator", "Content Lab", "Experiments", "Trend Radar"].map((item, i) => <button key={item} onClick={() => setActive(item)} className={active === item ? "nav-active" : ""}><span>{["▦","✦","◇","⌁","◎"][i]}</span>{item}</button>)}
+          {["Dashboard", "Evaluator", "Content Lab", "Experiments", "Trend Radar"].map((item, i) => <button key={item} title={item} onClick={() => setActive(item)} aria-current={active === item ? "page" : undefined} className={active === item ? "nav-active" : ""}><span aria-hidden="true">{["▦","✦","◇","⌁","◎"][i]}</span>{item}</button>)}
         </nav>
         <div className="sidebar-bottom">
           <div className="system-card"><span className="pulse"/><small>Evaluation engine</small><strong>6 signals online</strong><p>Explainable local scoring</p></div>
@@ -88,12 +101,12 @@ export default function Home() {
       </aside>
 
       <section className="main-panel">
-        <header className="topbar"><div><span className="eyebrow">CONTENT INTELLIGENCE / {active.toUpperCase()}</span><h1>{active === "Evaluator" ? "Turn a good post into a stronger one." : active}</h1></div><div className="header-actions"><button className="ghost" onClick={() => setNotice("Scores are deterministic editorial heuristics—not reach predictions.")}>Methodology</button><button className="primary" onClick={saveEvaluation}>Save evaluation</button></div></header>
+        <header className="topbar"><div><span className="eyebrow">CONTENT INTELLIGENCE / {active.toUpperCase()}</span><h1>{active === "Evaluator" ? "Turn a good post into a stronger one." : active}</h1></div><div className="header-actions"><button className="ghost" onClick={() => setNotice("Scores are deterministic editorial heuristics—not reach predictions.")}>Methodology</button><button className="primary" disabled={saving || !text.trim()} onClick={saveEvaluation}>{saving ? "Saving…" : "Save evaluation"}</button></div></header>
 
         {active !== "Evaluator" ? <DashboardView active={active} onEvaluate={() => setActive("Evaluator")} /> : <>
           <section className="workspace-grid">
             <article className="composer card">
-              <div className="card-head"><div><span className="step">01</span><h2>Source content</h2></div><label className="upload">↑ Upload<input type="file" accept=".txt,.md,.csv,text/plain,text/markdown,text/csv" onChange={onFile}/></label></div>
+              <div className="card-head"><div><span className="step">01</span><h2>Source content</h2></div><label className="upload">↑ Upload<input type="file" aria-label="Upload source content" accept=".txt,.md,.csv,text/plain,text/markdown,text/csv" onChange={onFile}/></label></div>
               <div className="platform-row"><span>Optimize for</span>{(["X","LinkedIn","Instagram"] as Platform[]).map(p => <button key={p} onClick={() => setPlatform(p)} className={platform === p ? "selected" : ""}>{p}</button>)}</div>
               <textarea aria-label="Content to evaluate" value={text} onChange={e => setText(e.target.value)} />
               <div className="composer-meta"><span>{result.words} words</span><span className={result.chars > result.limit ? "danger" : ""}>{result.chars} / {result.limit} characters</span><span>Local draft • not saved</span></div>
@@ -112,10 +125,10 @@ export default function Home() {
           <section className="improvements card">
             <div className="card-head"><div><span className="step">03</span><h2>Ranked enhancements</h2><p>Three editorial directions, scored with the same transparent model.</p></div><span className="human-badge">● Human approval required</span></div>
             <div className="variant-grid">{variants.map((variant, i) => <button key={i} className={`variant ${selectedVariant === i ? "variant-active" : ""}`} onClick={() => setSelectedVariant(i)}><div><span>0{i+1} / {['Clarity','Authority','Conversation'][i]}</span><b>+{Math.max(0, projected[i]-result.overall)} pts</b></div><p>{variant}</p><footer><span>{analyse(variant, platform).chars} chars</span><strong>{projected[i]} score</strong></footer></button>)}</div>
-            <div className="selected-output"><div><span>SELECTED ENHANCEMENT</span><button onClick={() => {navigator.clipboard?.writeText(variants[selectedVariant]); setNotice("Enhanced version copied.")}}>Copy text</button></div><p>{variants[selectedVariant]}</p><button className="apply" onClick={() => setText(variants[selectedVariant])}>Apply to draft →</button></div>
+            <div className="selected-output"><div><span>SELECTED ENHANCEMENT</span><button onClick={copyVariant}>Copy text</button></div><p>{variants[selectedVariant]}</p><button className="apply" onClick={() => setText(variants[selectedVariant])}>Apply to draft →</button></div>
           </section>
         </>}
-        {notice && <div className="toast" role="status" onClick={() => setNotice("")}>{notice}<span>×</span></div>}
+        {notice && <div className="toast" role="status">{notice}<button type="button" aria-label="Dismiss notification" onClick={() => setNotice("")}>×</button></div>}
       </section>
     </main>
   );
