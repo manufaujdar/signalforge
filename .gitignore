@@ -41,3 +41,10 @@ next-env.d.ts
 *.tsbuildinfo
 /outputs/
 /work/
+
+# Local engineering-tool dependencies
+tools/docs-tools/node_modules/
+
+# Local Python tooling caches
+__pycache__/
+*.py[cod]

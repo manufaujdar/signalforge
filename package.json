@@ -15,7 +15,9 @@
     "typecheck": "tsc --noEmit --pretty false",
     "audit:prod": "npm audit --omit=dev --audit-level=high",
     "quality": "npm run lint && npm run typecheck && npm run audit:prod && npm test",
-    "db:generate": "drizzle-kit generate"
+    "db:generate": "drizzle-kit generate",
+    "test:browser": "node scripts/browser_regressions.mjs",
+    "prepush": "npm run quality && npm run test:browser && python3 -m unittest discover -s tools -p 'test_*.py' && python3 scripts/engineering_checks.py"
   },
   "dependencies": {
     "drizzle-orm": "0.45.2",
@@ -48,7 +50,8 @@
     "typescript": "5.9.3",
     "vinext": "0.0.50",
     "vite": "8.0.13",
-    "wrangler": "4.92.0"
+    "wrangler": "4.92.0",
+    "playwright": "1.63.0"
   },
   "type": "module"
 }

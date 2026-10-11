@@ -21,3 +21,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run quality
+      - name: Install Chromium for synthetic regressions
+        run: npx --no-install playwright install --with-deps chromium
+      - name: Run production browser regressions
+        run: npm run test:browser
