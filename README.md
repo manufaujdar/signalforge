@@ -103,3 +103,7 @@ actions tied to the current ChatGPT user. Leave public content anonymous.
 
 - [vinext Documentation](https://github.com/cloudflare/vinext)
 - [Drizzle D1 Guide](https://orm.drizzle.team/docs/get-started/d1-new)
+
+## Workspace preferences
+
+Workspace preferences are available in the header on desktop and mobile. Default platform and enhancement direction save in this browser and apply to the current draft. Browser storage failure keeps the choices in the current tab with visible feedback. Draft text is not autosaved; saving an evaluation remains explicit and publishing stays human-owned. Scores use text and platform only; unsupported campaign goal/audience inputs have been removed.

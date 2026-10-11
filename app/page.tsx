@@ -1,8 +1,7 @@
 "use client";
 
-import { ChangeEvent, useMemo, useState } from "react";
-
-type Platform = "X" | "LinkedIn" | "Instagram";
+import { ChangeEvent, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { defaultPreferences, parseWorkspacePreferences, preferencesSnapshot, subscribePreferences, type Platform, type WorkspacePreferences } from "../lib/workspace-preferences";
 type Scores = Record<"Audience fit" | "Clarity" | "Specificity" | "Conversation" | "Trust" | "Native fit", number>;
 
 const demo = `AI agents won't replace your social media team.\n\nThey will replace the blank page, the messy research folder, and the weekly guessing game.\n\nThe useful system is simple: research → verify → draft → human review → measure → learn.\n\nWhich step slows your team down most?`;
@@ -43,11 +42,30 @@ function enhance(text: string, mode: "clear" | "bold" | "conversation") {
 }
 
 export default function Home() {
-  const [platform, setPlatform] = useState<Platform>("X");
+  const savedPreferences = parseWorkspacePreferences(useSyncExternalStore(subscribePreferences, preferencesSnapshot, () => null));
+  const [platformChoice, setPlatform] = useState<Platform | null>(null);
+  const platform = platformChoice ?? savedPreferences.platform;
+
   const [text, setText] = useState(demo);
   const [active, setActive] = useState("Evaluator");
   const [notice, setNotice] = useState("");
-  const [selectedVariant, setSelectedVariant] = useState(0);
+  const [variantChoice, setSelectedVariant] = useState<number | null>(null);
+  const selectedVariant = variantChoice ?? savedPreferences.direction;
+  const [preferenceDraft, setPreferences] = useState<WorkspacePreferences | null>(null);
+  const preferences = preferenceDraft ?? savedPreferences;
+  const [preferenceStatus, setPreferenceStatus] = useState("Preferences save on this device. Draft text stays in this tab until you explicitly save an evaluation.");
+  const settingsDialog = useRef<HTMLDialogElement>(null);
+
+
+  function applyPreferences(next: WorkspacePreferences) {
+    setPreferences(next);
+    setPlatform(next.platform);
+    setSelectedVariant(next.direction);
+    try {
+      localStorage.setItem("signalforge-workspace-preferences", JSON.stringify(next));
+      setPreferenceStatus("Preferences saved on this device and applied to the current draft.");
+    } catch { setPreferenceStatus("Preferences applied to this tab, but could not be saved on this device. Keep this tab open or retry."); }
+  }
   const result = useMemo(() => analyse(text, platform), [text, platform]);
   const variants = useMemo(() => [enhance(text, "clear"), enhance(text, "bold"), enhance(text, "conversation")], [text]);
   const projected = variants.map(v => analyse(v, platform).overall);
@@ -82,22 +100,21 @@ export default function Home() {
         </nav>
         <div className="sidebar-bottom">
           <div className="system-card"><span className="pulse"/><small>Evaluation engine</small><strong>6 signals online</strong><p>Explainable local scoring</p></div>
-          <button className="text-button" onClick={() => setNotice("Workspace settings are not part of this prototype.")}>⚙ Workspace settings</button>
           <div className="profile"><span>MF</span><div><strong>Content team</strong><small>Human approval on</small></div></div>
         </div>
       </aside>
 
       <section className="main-panel">
-        <header className="topbar"><div><span className="eyebrow">CONTENT INTELLIGENCE / {active.toUpperCase()}</span><h1>{active === "Evaluator" ? "Turn a good post into a stronger one." : active}</h1></div><div className="header-actions"><button className="ghost" onClick={() => setNotice("Scores are deterministic editorial heuristics—not reach predictions.")}>Methodology</button><button className="primary" onClick={saveEvaluation}>Save evaluation</button></div></header>
+        <header className="topbar"><div><span className="eyebrow">CONTENT INTELLIGENCE / {active.toUpperCase()}</span><h1>{active === "Evaluator" ? "Turn a good post into a stronger one." : active}</h1></div><div className="header-actions"><button className="ghost" onClick={() => settingsDialog.current?.showModal()}>Workspace preferences</button><button className="ghost" onClick={() => setNotice("Scores are deterministic editorial heuristics—not reach predictions.")}>Methodology</button><button className="primary" onClick={saveEvaluation}>Save evaluation</button></div></header>
 
         {active !== "Evaluator" ? <DashboardView active={active} onEvaluate={() => setActive("Evaluator")} /> : <>
           <section className="workspace-grid">
             <article className="composer card">
               <div className="card-head"><div><span className="step">01</span><h2>Source content</h2></div><label className="upload">↑ Upload<input type="file" accept=".txt,.md,.csv,text/plain,text/markdown,text/csv" onChange={onFile}/></label></div>
-              <div className="platform-row"><span>Optimize for</span>{(["X","LinkedIn","Instagram"] as Platform[]).map(p => <button key={p} onClick={() => setPlatform(p)} className={platform === p ? "selected" : ""}>{p}</button>)}</div>
+              <div className="platform-row"><span>Optimize for</span>{(["X","LinkedIn","Instagram"] as Platform[]).map(p => <button key={p} onClick={() => setPlatform(p)} aria-pressed={platform === p} className={platform === p ? "selected" : ""}>{p}</button>)}</div>
               <textarea aria-label="Content to evaluate" value={text} onChange={e => setText(e.target.value)} />
               <div className="composer-meta"><span>{result.words} words</span><span className={result.chars > result.limit ? "danger" : ""}>{result.chars} / {result.limit} characters</span><span>Local draft • not saved</span></div>
-              <div className="context-row"><label>Goal<select defaultValue="conversation"><option value="conversation">Start conversation</option><option>Build authority</option><option>Drive clicks</option></select></label><label>Audience<input defaultValue="Tech & product leaders"/></label></div>
+              <p className="prototype-note">Scores use text and platform only. Audience and campaign-goal scoring require a defined editorial model.</p>
               <button className="evaluate" onClick={() => setNotice("Fresh evaluation complete.")}>Evaluate content <span>→</span></button>
             </article>
 
@@ -115,6 +132,17 @@ export default function Home() {
             <div className="selected-output"><div><span>SELECTED ENHANCEMENT</span><button onClick={() => {navigator.clipboard?.writeText(variants[selectedVariant]); setNotice("Enhanced version copied.")}}>Copy text</button></div><p>{variants[selectedVariant]}</p><button className="apply" onClick={() => setText(variants[selectedVariant])}>Apply to draft →</button></div>
           </section>
         </>}
+        <dialog ref={settingsDialog} className="workspace-preferences" aria-labelledby="preferences-title">
+          <form onSubmit={event => { event.preventDefault(); applyPreferences(preferences); }}>
+            <h2 id="preferences-title">Workspace preferences</h2>
+            <p>Defaults for this browser. Applying them updates the platform and selected enhancement of the current draft.</p>
+            <label>Default platform<select value={preferences.platform} onChange={event => { setPreferences({ ...preferences, platform: event.target.value as Platform }); setPreferenceStatus("Unsaved preferences."); }}>{(["X", "LinkedIn", "Instagram"] as Platform[]).map(value => <option key={value}>{value}</option>)}</select></label>
+            <label>Default enhancement<select value={preferences.direction} onChange={event => { setPreferences({ ...preferences, direction: Number(event.target.value) }); setPreferenceStatus("Unsaved preferences."); }}>{["Clarity", "Authority", "Conversation"].map((value, index) => <option key={value} value={index}>{value}</option>)}</select></label>
+            <p role="status">{preferenceStatus}</p>
+            <p>Only these two defaults are saved locally. Draft text, account access and publishing permission are separate; Save evaluation remains explicit.</p>
+            <div className="preference-actions"><button className="primary" type="submit">Apply preferences</button><button className="ghost" type="button" onClick={() => applyPreferences(defaultPreferences)}>Reset defaults</button><button className="ghost" type="button" onClick={() => settingsDialog.current?.close()}>Close preferences</button></div>
+          </form>
+        </dialog>
         {notice && <div className="toast" role="status" onClick={() => setNotice("")}>{notice}<span>×</span></div>}
       </section>
     </main>
