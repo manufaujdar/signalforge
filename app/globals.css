@@ -7,3 +7,15 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 @media(max-width:700px){.sidebar{flex-wrap:wrap;gap:10px}.sidebar nav{width:100%;justify-content:space-between;flex-wrap:wrap;overflow:visible}.sidebar nav button{font-size:11px;flex-direction:column;gap:5px;min-height:44px;padding:8px}.topbar{align-items:flex-start;gap:16px;flex-wrap:wrap}.header-actions{width:100%}.ghost{display:block}.toast{right:12px;bottom:12px}.composer-meta span:last-child{margin-left:0}.card-head p{font-size:13px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 @media(max-width:700px){.sidebar nav button:not(.nav-active),.sidebar nav .nav-active{font-size:11px}}
+
+.sidebar { height: 100dvh; overflow-y: auto; }
+.workspace-preferences { width: min(560px, calc(100% - 32px)); max-height: calc(100dvh - 32px); overflow: auto; overscroll-behavior: contain; border: 1px solid var(--line); border-radius: 16px; background: var(--card); color: var(--ink); padding: 24px; }
+.workspace-preferences::backdrop { background: #18211d99; }
+.workspace-preferences h2 { margin-top: 0; }
+.workspace-preferences p { font-size: 14px; line-height: 1.5; }
+.workspace-preferences label { display: grid; gap: 8px; margin: 18px 0; font-weight: bold; }
+.workspace-preferences select { width: 100%; min-height: 44px; background: white; color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 8px; }
+.preference-actions, .header-actions { flex-wrap: wrap; }
+.preference-actions { display: flex; gap: 8px; }
+.preference-actions button, .header-actions button { min-height: 44px; }
+@media (max-width: 700px) { .sidebar { height: auto; overflow: visible; } }

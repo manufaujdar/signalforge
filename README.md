@@ -145,3 +145,8 @@ Spec Kit v1.1.0 — local development/planning workflow
 Read .specify/INTEGRATION.md for the installed Codex feature, bug and idea
 commands. Existing project/company trackers and approvals remain authoritative.
 Run commands from this folder; new project chats discover .agents/skills/speckit-*.
+
+
+## Workspace preferences
+
+Workspace preferences are available in the header on desktop and mobile. Default platform and enhancement direction save in this browser and apply to the current draft. Browser storage failure keeps the choices in the current tab with visible feedback. Draft text is not autosaved; saving an evaluation remains explicit and publishing stays human-owned. Scores use text and platform only; unsupported campaign goal/audience inputs have been removed.
