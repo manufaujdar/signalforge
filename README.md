@@ -1,109 +1,75 @@
-# vinext-starter
+# SignalForge
 
-A clean full-stack starter running on
-[vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and
-Drizzle support.
+SignalForge is a content-evaluation prototype for drafts intended for X,
+LinkedIn and Instagram. It uses an explainable local text-and-platform heuristic
+to compare editorial directions. Scores describe prioritization confidence;
+they do not predict reach or verify factual claims. Dashboard analytics are
+labelled synthetic demonstration data, with no connected platform account.
 
-## Prerequisites
+[Documentation map](docs/DOCUMENTATION_INDEX.md) ·
+[Architecture](docs/architecture.md) ·
+[Development and hosting](docs/development.md)
 
-- Node.js `>=22.13.0`
+## Run locally
 
-## Quick Start
+Requires Node.js 22.13.0 or newer. Install the locked dependencies:
 
-```bash
-npm install
+```sh
+npm ci
 npm run dev
-npm run build
 ```
 
-This starter does not use `wrangler.jsonc`.
+Use `npm run build` to create the vinext build and `npm run start` to serve it.
+The application uses React/TypeScript, vinext and Cloudflare-compatible Worker
+surfaces, with optional D1/Drizzle persistence.
 
-## Included Shape
+## Evaluation and saved records
 
-- edit site code under `app/`
-- `.openai/hosting.json` declares optional Sites D1 and R2 bindings
-- `vite.config.ts` simulates declared bindings for local development
-- `db/schema.ts` starts intentionally empty
-- `examples/d1/` contains an optional D1 example surface
-- `drizzle.config.ts` supports local migration generation when needed
+Anonymous visitors can evaluate text locally. Saving is an explicit API action
+that requires a stable authenticated-user ID; stored evaluations are filtered
+by that owner on every read. Legacy anonymous rows remain quarantined.
 
-## Workspace Auth Headers
+Workspace preferences in the desktop/mobile header save the default platform
+and enhancement direction in this browser. Blocked browser storage retains
+choices for the current tab with visible feedback. Draft text is not autosaved.
+Publishing remains a human action. Audience and campaign-goal scoring need a
+defined editorial model and are outside the current evaluator.
 
-OpenAI workspace sites can read the current user's email from
-`oai-authenticated-user-email`.
+Sign in with ChatGPT establishes identity, not workspace membership. Keep saved
+records behind the hosting access policy or an explicit membership/allowlist
+policy. The [development guide](docs/development.md) describes identity headers,
+reserved authentication routes and binding setup.
 
-SIWC-authenticated workspace sites may also receive
-`oai-authenticated-user-full-name` when the user's SIWC profile has a non-empty
-`name` claim. The full-name value is percent-encoded UTF-8 and is accompanied by
-`oai-authenticated-user-full-name-encoding: percent-encoded-utf-8`.
+## Repository map
 
-Treat the full name as optional and fall back to email when it is absent:
+| Location | Purpose |
+| --- | --- |
+| `app/` | Pages, layout, identity helpers and evaluation API |
+| `lib/` | Shared input and workspace-preference contracts |
+| `db/`, `drizzle/` | Database client, schema and migration history |
+| `worker/` | Hosted Worker entry point and security headers |
+| `build/`, `types/` | Hosting integration and local binding types |
+| `examples/d1/` | Optional database example |
+| `tests/`, `scripts/`, `tools/` | Application checks and engineering tooling |
+| `docs/` | Product, architecture and development explanations |
 
-```tsx
-import { headers } from "next/headers";
+Keep generated build output and local database state out of source commits.
+Generate and inspect migrations after schema changes. Existing paths remain
+stable for imports, deployment and migration history.
 
-export default async function Home() {
-  const requestHeaders = await headers();
-  const email = requestHeaders.get("oai-authenticated-user-email");
-  const encodedFullName = requestHeaders.get("oai-authenticated-user-full-name");
-  const fullName =
-    encodedFullName &&
-    requestHeaders.get("oai-authenticated-user-full-name-encoding") ===
-      "percent-encoded-utf-8"
-      ? decodeURIComponent(encodedFullName)
-      : null;
+## Validation and contribution
 
-  const displayName = fullName ?? email;
-  // ...
-}
+```sh
+npm run quality
+npm run test:browser
 ```
 
-## Optional Dispatch-Owned ChatGPT Sign-In
+`quality` runs lint, typecheck, the production-dependency audit, build, unit
+checks and rendered HTML tests. The separate browser command checks synthetic
+rendered behavior. See [TOOLING.md](TOOLING.md) for the exact outgoing-commit
+gate and [CONTRIBUTING.md](CONTRIBUTING.md) for the change workflow.
 
-Import the ready-to-use helpers from `app/chatgpt-auth.ts` when the site needs
-optional or required ChatGPT sign-in:
-
-- Use `getChatGPTUser()` for optional signed-in UI.
-- Use `requireChatGPTUser(returnTo)` for server-rendered pages that should send
-  anonymous visitors through Sign in with ChatGPT.
-- Use `chatGPTSignInPath(returnTo)` and `chatGPTSignOutPath(returnTo)` for
-  browser links or actions.
-- Pass a same-origin relative `returnTo` path for the destination after sign-in
-  or sign-out. The helper validates and safely encodes it.
-- Mark protected pages with `export const dynamic = "force-dynamic"` because
-  they depend on per-request identity headers.
-
-Dispatch owns `/signin-with-chatgpt`, `/signout-with-chatgpt`, `/callback`, the
-OAuth cookies, and identity header injection. Do not implement app routes for
-those reserved paths. Routes that do not import and call the helper remain
-anonymous-compatible.
-
-SIWC establishes identity only; it does not prove workspace membership. Use the
-Sites hosting platform's access policy controls for workspace-wide restrictions,
-or enforce explicit server-side membership or allowlist checks.
-
-Saved evaluations require the stable authenticated-user ID and are filtered by
-that ID on every read. Anonymous visitors can still use the explainable evaluator
-locally, but the API refuses anonymous persistence. Deploy this app privately or
-add an explicit membership policy before using saved records with a team.
-
-Use SIWC for account pages, user-specific dashboards, saved records, and write
-actions tied to the current ChatGPT user. Leave public content anonymous.
-
-## Useful Commands
-
-- `npm run dev`: start local development
-- `npm run build`: verify the vinext build output
-- `npm test`: build the starter and verify its rendered loading skeleton
-- `npm run typecheck`: verify application, worker, D1 shim, and test types
-- `npm run quality`: lint, typecheck, audit production dependencies, build, and test
-- `npm run db:generate`: generate Drizzle migrations after schema changes
-
-## Learn More
-
-- [vinext Documentation](https://github.com/cloudflare/vinext)
-- [Drizzle D1 Guide](https://orm.drizzle.team/docs/get-started/d1-new)
-
-## Workspace preferences
-
-Workspace preferences are available in the header on desktop and mobile. Default platform and enhancement direction save in this browser and apply to the current draft. Browser storage failure keeps the choices in the current tab with visible feedback. Draft text is not autosaved; saving an evaluation remains explicit and publishing stays human-owned. Scores use text and platform only; unsupported campaign goal/audience inputs have been removed.
+Local checks do not establish hosted owner isolation, migration rollout or
+production readiness. Those gates, retention, membership policy and the license
+decision remain explicit follow-up work in the
+[technical overview](docs/technical-overview.md).

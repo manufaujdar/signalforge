@@ -1,22 +1,24 @@
 # Documentation index
 
-SignalForge is a full-stack TypeScript evaluation-dashboard prototype using
-vinext and Cloudflare-compatible surfaces. The README retains some starter
-template wording; this index records the implemented product-specific boundary.
+SignalForge is a full-stack TypeScript content-evaluation prototype using vinext
+and Cloudflare-compatible surfaces. Start with the product scope before changing
+the evaluator, stored records or hosting configuration.
 
 ## Authoritative documents
 
-- README.md: local commands, identity, persistence, and Sites notes.
-- docs/architecture.md: application, worker, auth, and persistence flow.
-- docs/technical-overview.md: codebase, technology, data model, and validation.
-- SECURITY.md and CONTRIBUTING.md: security and change workflow.
+- [README](../README.md): product boundary, local commands and repository map.
+- [Development](development.md): identity helpers, binding setup and commands.
+- [Architecture](architecture.md): application, worker, auth and persistence flow.
+- [Technical overview](technical-overview.md): data model and remaining gates.
+- [Security](../SECURITY.md) and [contribution guide](../CONTRIBUTING.md): reporting and change workflow.
+- [Tooling](../TOOLING.md): exact outgoing-commit checks and prerequisites.
 - .openai/hosting.json, app/, db/, worker/, tests/: executable sources.
 
 ## Initial documentation set
 
 | Area | Status |
 | --- | --- |
-| Product scope and prototype boundary | Present, needs README cleanup |
+| Product scope and prototype boundary | Product README and development guide |
 | Architecture and deployment topology | Added |
 | Codebase and technology | Added |
 | Data model and owner-scoped persistence | Added |
