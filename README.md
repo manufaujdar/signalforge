@@ -1,8 +1,11 @@
-# vinext-starter
+# SignalForge
 
-A clean full-stack starter running on
-[vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and
-Drizzle support.
+SignalForge is a content-intelligence and evaluation dashboard. It provides a
+full-stack foundation for evaluating content with traceable inputs, structured
+criteria, and user-scoped saved records.
+
+The application runs on [vinext](https://github.com/cloudflare/vinext), with
+optional Cloudflare D1 and Drizzle support.
 
 ## Prerequisites
 
